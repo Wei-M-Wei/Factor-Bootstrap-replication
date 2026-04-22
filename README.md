@@ -1,107 +1,10 @@
 ## NNR
 
-This is the first version of the R package 'NNR'. Please note that it is copied from https://github.com/wszhang-econ/NNRPanel.
+This is the first version of the R package 'NNR'. Please note that it is copied from the R package 'NNRPanel' https://github.com/wszhang-econ/NNRPanel. The only difference is that we allow for a more flexible choice of the penalty parameter.
 
 To install and use the package, we recommend downloading 'NNR_0.1.0.tar' and installing the package locally by
 ```{r }
 install.packages('your path/NNR_0.1.0.tar')
 ```
+The simulation and application rely on this package to implement fast IFE estimation.
 
-## An example:
-```{r }
-library(Survivalml)
-n <- 2000
-p <- 10
-x1 <- rnorm(n)
-x2 <- 0.2*x1 + rnorm(n)
-x3 <- matrix(rnorm(n*p), nrow = n, ncol = p)
-
-# Define parameters for generating y
-intercept <- 5
-coef_x1 <- 2
-coef_x2 <- 0
-coef_x3 <- rep(0,p)
-
-# Generate y based on logistic function
-logistic_function <- intercept + coef_x1 * x1 + coef_x2 * x2 + x3 %*% coef_x3
-probabilities <- plogis(logistic_function)
-y <- rbinom(n, 1, probabilities)
-X <- data.frame(x1, x2, x3)
-X <- data.matrix(X)
-index <- seq(p+2)
-
-# weight is specified randomly
-weight <- c(rep(0.2,100), rep(1,100), rep(1,n - 200))
-
-# LASSO when alpha = 1, Group LASSO when alpha = 0
-# intercept_zero could be set arbitrarily sicne it's a starting point of the block coordinate descent algorithm, we use 'intercept_zero = 0' through all the simulations and empirical applications
-fit = survival_sparsegl(X, y, group = index, nlambda = 100, asparse = 1, weight = weight, intercept_zero = 0, standardize = TRUE)
-fit$beta
-
-# Group LASSO
-fit = survival_sparsegl(X, y, group = index, nlambda = 100, asparse = 0, weight = weight, intercept_zero = 0, standardize = TRUE)
-fit$beta
-
-# Sparse group LASSO
-fit = survival_sparsegl(X, y, group = index, nlambda = 100, asparse = 0.5, weight = weight, intercept_zero = 0, standardize = TRUE)
-fit$beta
-
-# Cross-validation without censored data, where ' pred.loss = 'censor' ' allows maximizing the weighted log-likelihood. If the data is not censored, ' pred.loss = 'censor' ' maximizes the log-likelihood.
-fit_cv = cv.survival_sparsegl(X, y, group = index, nlambda = 100, asparse = 0.5, weight = weight, intercept_zero = 0, standardize = TRUE, asparse = 0.5, nfolds = 5, pred.loss = 'censor', intercept_zero = 0, standardize = TRUE)
-
-# In the case of censored data, please check the 'survival_estimate.r' file, where we describe functions in detail.
-    
-    
-```
-
-## Replication instructions
-
-All replication files are available in the repository root directory (`'reproduce package'`).
-
-To reproduce the figures and tables in the paper, run the following scripts:
-
-- **Figure 2 and Table 2 (Variance ratio and correlation heatmap)**  
-  Run: `Figure 2 and Table 2 (variance ratio and correlation heatmap)`
-
-- **Table 4 (Prediction simulations)**  
-  Run: `Simulation scenario 1` through `Simulation scenario 5`
-
-- **Table 5 (SNR LASSO-U simulations)**  
-  Run: `SNR LASSOU scenario 1`, `SNR LASSOU scenario 2`, and `SNR LASSOU scenario 5`
-
-- **Table 6**  
-  Results are obtained from `Simulation scenario 1` through `Simulation scenario 5`
-
-- **Table 7 (Inference simulations)**  
-  Run: `inference test scenario 1` and subsequent scenarios
-
-- **Tables 9 and 10 (empirical application)**  
-  Run the files with names corresponding to the respective methods
-
-- **Table 11**  
-  Run: `significance test`
-
-- **Tables S2–S6 (Arxiv version: Tables 13-17)**  
-  Generated as byproducts of `Simulation scenario 1` through `Simulation scenario 5`
-
-- **Figures S1–S3 (Arxiv version: Figures 4-6)**  
-  Generated as byproducts of the empirical application
-
-- **Figures S4–S5 (Arxiv version: Figures 7-8)**  
-  Run: `inference in empirical application s = 6` and `inference in empirical application s = 10`
-
-- **Tables S7 and S8 (Arxiv version: Tables 18-19)**  
-  Run files have 'another group structure ...' 
-  
-- **Tables S9 and S10 (Arxiv version: Tables 20-21)**  
-  Run files beginning with `application 2 ...`
-
-
-## Reference
-
-[^1]: Liang, X., Cohen, A., Sólon Heinsfeld, A., Pestilli, F., & McDonald, D. J. (2024). sparsegl: An R Package for Estimating Sparse Group Lasso. Journal of Statistical Software, 110(6), 1–23. https://doi.org/10.18637/jss.v110.i06
-
-[^2]: Babii, A., Ghysels, E., & Striaukas, J. (2022). Machine learning time series regressions with an application to nowcasting. Journal of Business & Economic Statistics, 40(3), 1094-1106.
-
-[^3]: Miao, W., Beyhum, J., Striaukas, J., & Van Keilegom, I. High-dimensional censored MIDAS logistic regression for corporate survival forecasting. [arXiv:2502.09740
-Search](https://arxiv.org/abs/2502.09740).
