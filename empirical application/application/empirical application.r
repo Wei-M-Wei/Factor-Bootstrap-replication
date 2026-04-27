@@ -177,7 +177,28 @@ boot_res <- tryCatch({
     lambda_mle = est$L_fe,
     f_mle = est$R_fe,
     model_type = "probit",
-    num_bootstrap = 299,
+    num_bootstrap = 399,
+    N = panel_N,
+    T = panel_T,
+    R = est$num_factor_est,
+    use_parallel = TRUE,
+    dimbeta = length(num_covs),
+    alpha = 0.01
+  )
+}, error = function(e) NULL)
+est_boot = boot_res$beta_bc_median
+se_boot = apply(boot_res$beta_boot, 1, sd)
+
+# To get 5% significant level, please run the following and check its CIs.
+boot_res <- tryCatch({
+  bootstrap_bias_correction(
+    Y = Y_mat,
+    X_list = X_list,
+    beta_mle = est$beta_fe[1:length(num_covs)],
+    lambda_mle = est$L_fe,
+    f_mle = est$R_fe,
+    model_type = "probit",
+    num_bootstrap = 399,
     N = panel_N,
     T = panel_T,
     R = est$num_factor_est,
@@ -186,6 +207,3 @@ boot_res <- tryCatch({
     alpha = 0.05
   )
 }, error = function(e) NULL)
-est_boot = boot_res$beta_bc_median
-se_boot = apply(boot_res$beta_boot, 1, sd)
-
